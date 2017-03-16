@@ -35,7 +35,7 @@ Note that the `echo = FALSE` parameter was added to the code chunk to prevent pr
 Our first task is to query Stock Assessment Graphs web services via [icesSAG](https://github.com/ices-tools-prod/icesSAG) for stock status table, description (stock name) and stock code.
 
 ```{r SAG}
-library(icesSAG, echo = FALSE)
+library(icesSAG)
 
 ## Look at the help files of functions like this: (Note, you have to load the package using the library() function, first)
 ?getListStocks()
@@ -87,6 +87,18 @@ The final table we want will look like this:
 
 hint: you will need to change the column names between the two data sources because they may not be the same. Also, make sure that values in the columns you are trying to merge on are consistent (e.g., Aab-123 is different from aab-123).
 
+## Changing column names in dat file
+```{r}
+summary(rawsd)
+summary(dat)
+names(dat)[names(dat)=="FishStockName"] <- "StockCode"
+dat[,c("StockCode")]
+rawsd[,c("StockCode")]
 
 
+newtab <- dplyr::left_join(rawsd, dat, by=NULL, copy=TRUE)
+
+newtab[,c("StockCode","AssessmentKey", "Description", "DataCategory")]
+
+````
 
