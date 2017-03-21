@@ -14,6 +14,7 @@ library(purrr)
 library(xml2)
 library(jsonlite)
 library(stringr)
+library(docxtractr)
 ```
 
 
@@ -27,7 +28,7 @@ summaryTableFun <- function(key) {
   sprintf('<a href="%s" target="_blank"><img src="%s" height="100%%" width="100%%"></img>', tt, tt)
 }
 
-year <- 2016
+year <- 2017
 
 rawsd <- fromJSON(sprintf("http://sd.ices.dk/services/odata3/StockListDWs3?$filter=ActiveYear%%20eq%%20%s", 
                           year))$value 
@@ -74,10 +75,6 @@ getListStocks(year = year) %>%
   filter(Status == "Published") %>%
   mutate(StockCode = tolower(FishStockName)) %>% 
   left_join(slFull, by = c("FishStockName" = "StockCode")) %>%
-  # select(key,
-  #        StockCode = FishStockName,
-  #        Description = StockDescription,
-  #        DataCategory) %>%
   mutate(StockUrl = sprintf("http://ices.dk/sites/pub/Publication%%20Reports/Advice/%s/%s/%s.pdf",
                             year,
                             year,
@@ -104,7 +101,7 @@ getListStocks(year = year) %>%
                   )
                 ),
                 options = list(
-                  dom = 't',
+                  # dom = 't',
                   ordering = TRUE,
                   scrollX = FALSE,
                   autoWidth = TRUE,
