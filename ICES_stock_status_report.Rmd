@@ -33,12 +33,26 @@ library(stringr)
 ## 
 
 
-summaryTableFun <- function(AssessmentKey) {
+summaryTableFun <- function(AssessmentKey, 
+                            zoomer = FALSE) {
   imageURL <- sprintf("http://standardgraphs.ices.dk/StandardGraphsWebServices.asmx/getStockStatusTable?AssessmentKey=%s", AssessmentKey) %>%
     read_xml() %>% 
     xml_text()
+  
+  if(!zoomer) {
   sprintf('<a href="%s" target="_blank"><img src="%s" height="100%%" width="100%%"></img>', imageURL, imageURL)
+  }
+  if(zoomer) {
+    sprintf('<div class="image">
+                <img src="%s" />
+             </div>', 
+            imageURL)
+  }
 }
+
+
+
+
 
 year <- 2017
 
@@ -115,6 +129,7 @@ stock_list_frmt <- bind_rows(
 if(nrow(stock_list) != nrow(stock_list_frmt)) stop("Number of rows different when formatting")
 
 stock_list_frmt %>% 
+  head() %>% 
   mutate(StockUrl = sprintf("http://ices.dk/sites/pub/Publication%%20Reports/Advice/%s/%s/%s.pdf",
                             year,
                             year,
@@ -124,7 +139,7 @@ stock_list_frmt %>%
                               StockCode),
          AdviceValue = 12345, # link from /advice2017/released_advice
          DataCategory = signif(as.numeric(DataCategory), 1),
-         StockStatus = purrr::map(AssessmentKey, summaryTableFun)) %>% 
+         StockStatus = purrr::map(AssessmentKey, summaryTableFun, zoomer = TRUE)) %>% 
   select(`Stock code` = StockCode,
          # Release date
          Description,
