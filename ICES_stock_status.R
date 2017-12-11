@@ -1,4 +1,6 @@
 rm(list = ls())
+## This is for use on the server to knit the .html version from the .rmd script
+
 input_file <- "~/rCode/stock_status/ICES_stock_status_report.Rmd"
 output_dir <- "D:/IIS/web/"
 output_file <- "stockstatus.html"
