@@ -1,0 +1,175 @@
+---
+title: ''
+output:
+  html_document:
+    css: styles.css
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(DT)
+library(rmarkdown)
+library(glue)
+library(icesSAG)
+```
+
+
+```{r get-data, include = FALSE, cache = FALSE}
+source("utilities.R")
+stock_summary_table <- get_stock_summary(active_year = 2017)
+
+
+```
+
+<br>
+<br>
+[<img align="right" alt="ICES Logo" width="17%" height="17%" src="http://ices.dk/_layouts/15/1033/images/icesimg/iceslogo.png">](http://ices.dk)
+<br>
+
+## ICES Stock Status Overview {.tabset .tabset-fade}
+### MSY Reference Points
+```{r MSY-table, echo = FALSE}
+
+
+
+stock_summary_table %>%
+  select(`Stock code` = advice_url,
+         `Stock name` = StockKeyDescription,
+         `Data category` = DataCategory,
+         `Advice category` = AdviceCategory,
+         matches(".*MSY")) %>%
+    DT::datatable(
+    escape = FALSE,
+    rownames = FALSE,
+    filter = "top",
+    container = th_cols("MSY"),
+    extensions = 'Buttons',
+    options = list(dom = 'Bfrtip',
+                   buttons = 
+                     list('colvis'#, 
+                     #      list(
+                     #        extend = 'collection',
+                     #        buttons = list(list(extend='csv',
+                     #                            filename = 'hitStats'),
+                     #                       list(extend='excel',
+                     #                            filename = 'hitStats'),
+                     #                       list(extend='pdf',
+                     #                            filename= 'hitStats')),
+                     #        text = 'Download'
+                     # )
+                     ),
+                   scrollX = TRUE,
+                   pageLength = nrow(stock_summary_table)
+    ))
+
+
+```
+
+### PA Reference Points
+```{r PA-table, echo = FALSE}
+stock_summary_table %>%
+  select(`Stock code` = advice_url,
+         `Stock name` = StockKeyDescription,
+         `Data category` = DataCategory,
+         `Advice category` = AdviceCategory,
+         matches(".*PA"),
+         matches(".*pa")) %>%
+#   # using I() here to make sure it is converted to an array in JavaScript
+    DT::datatable(
+    escape = FALSE,
+    rownames = FALSE,
+    container = th_cols("PA"),
+    extensions = 'Buttons',
+    options = list(dom = 'Bfrtip',
+                   buttons = 
+                     list('colvis'#, 
+                     #      list(
+                     #        extend = 'collection',
+                     #        buttons = list(list(extend='csv',
+                     #                            filename = 'hitStats'),
+                     #                       list(extend='excel',
+                     #                            filename = 'hitStats'),
+                     #                       list(extend='pdf',
+                     #                            filename= 'hitStats')),
+                     #        text = 'Download'
+                     # )
+                     ),
+                   scrollX = TRUE,
+                   pageLength = nrow(stock_summary_table)
+    ))
+
+```
+
+### Management Plan/Strategy Reference Points
+```{r MGT-table, echo = FALSE}
+stock_summary_table %>%
+  select(`Stock code` = advice_url,
+         `Stock name` = StockKeyDescription,
+         `Data category` = DataCategory,
+         `Advice category` = AdviceCategory,
+         matches(".*MGT")) %>%
+  # using I() here to make sure it is converted to an array in JavaScript
+    DT::datatable(
+    escape = FALSE,
+    rownames = FALSE,
+    container = th_cols("MGT"),
+    extensions = 'Buttons',
+    options = list(dom = 'Bfrtip',
+                   buttons = 
+                     list('colvis'#, 
+                     #      list(
+                     #        extend = 'collection',
+                     #        buttons = list(list(extend='csv',
+                     #                            filename = 'hitStats'),
+                     #                       list(extend='excel',
+                     #                            filename = 'hitStats'),
+                     #                       list(extend='pdf',
+                     #                            filename= 'hitStats')),
+                     #        text = 'Download'
+                     # )
+                     ),
+                   scrollX = TRUE,
+                   pageLength = nrow(stock_summary_table)
+    ))
+
+
+```
+
+
+### Qualitative Reference Points
+```{r Qual-table, echo = FALSE}
+stock_summary_table %>% 
+  select(`Stock code` = advice_url,
+         `Stock name` = StockKeyDescription,
+         `Data category` = DataCategory,
+         `Advice category` = AdviceCategory,
+         matches(".*Qual")) %>% 
+  # using I() here to make sure it is converted to an array in JavaScript
+    DT::datatable(
+    escape = FALSE,
+    rownames = FALSE,
+    container = th_cols("Qual"),
+    extensions = 'Buttons',
+    options = list(dom = 'Bfrtip',
+                   buttons = 
+                     list('colvis'#, 
+                     #      list(
+                     #        extend = 'collection',
+                     #        buttons = list(list(extend='csv',
+                     #                            filename = 'hitStats'),
+                     #                       list(extend='excel',
+                     #                            filename = 'hitStats'),
+                     #                       list(extend='pdf',
+                     #                            filename= 'hitStats')),
+                     #        text = 'Download'
+                     # )
+                     ),
+                   scrollX = TRUE,
+                   pageLength = nrow(stock_summary_table)
+    ))
+
+
+```
+
+_Last updated on `r format(Sys.Date(), format = "%e %B %Y")`._
