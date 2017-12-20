@@ -1,9 +1,9 @@
-rm(list = ls())
+
 ## This is for use on the server to knit the .html version from the .rmd script
 
-input_file <- "~/rCode/stock_status/ICES_stock_status_report.Rmd"
+input_file <- "~/projects/StockStatusReport/ICES_stock_summary.rmd"
 output_dir <- "D:/IIS/web/"
-output_file <- "stockstatus.html"
+output_file <- "2017-advice_overview.html"
 file_path <- paste0(output_dir, output_file)
 
 if(!file.exists(input_file)) stop("input_file: '", input_file, "' is not found. Please check spelling/file location and try again.\n")
