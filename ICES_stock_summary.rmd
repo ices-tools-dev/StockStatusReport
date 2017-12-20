@@ -17,7 +17,7 @@ library(icesSAG)
 
 ```{r get-data, include = FALSE, cache = FALSE}
 source("utilities.R")
-stock_summary_table <- get_stock_summary(active_year = 2017)
+stock_summary_table <- get_stock_summary(active_year = 2017, output_type = "html")
 
 
 ```
