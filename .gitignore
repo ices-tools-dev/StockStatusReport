@@ -5,6 +5,11 @@
 # Session Data files
 .RData
 
+# extra output files
+/*.docx
+/*.xlsx
+/*.csv
+
 # Example code in package build process
 *-Ex.R
 
