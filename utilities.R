@@ -1,4 +1,5 @@
-output_type = "html"
+output_type = "docx"
+active_year = 2017
 get_stock_summary <- function(active_year, output_type) {
   
   stock_list_raw <- jsonlite::fromJSON("http://sd.ices.dk/services/odata3/StockListDWs3",
@@ -7,6 +8,9 @@ get_stock_summary <- function(active_year, output_type) {
     filter(ActiveYear == active_year) %>%
     distinct(.keep_all = TRUE) %>%
     mutate(DataCategory = floor(as.numeric(DataCategory)), 
+           StockKeyDescription = gsub("Skyliorhinus stellaris",
+                                      "Scyliorhinus stellaris",
+                                      StockKeyDescription),
            stock_code = dplyr::case_when(YearOfLastAssessment <= 2016 ~ PreviousStockKeyLabel,
                                          YearOfLastAssessment >= 2017 ~ StockKeyLabel,
                                          TRUE ~ NA_character_),
@@ -14,21 +18,57 @@ get_stock_summary <- function(active_year, output_type) {
                                          stock_code == "pan-flad" ~ "pand-flad",
                                          stock_code == "ple.27.7fg" ~ " ple.27.7f-g",
                                          !stock_code %in% c("cod.27.25-32", "pan-flad", "ple.27.7fg") ~ stock_code,
-                                         TRUE ~ NA_character_),
-           
-           advice_url = glue::glue("http://www.ices.dk/sites/pub/Publication%20Reports/Advice/{YearOfLastAssessment}/{YearOfLastAssessment}/{stock_code}.pdf"),
-           advice_url = glue::glue('<a href={advice_url} target="_blank" title="Click here for the most recent advice">{StockKeyLabel}</a>')) %>% 
+                                         TRUE ~ NA_character_)) %>% 
     filter(!is.na(stock_code)) %>% 
     select(stock_code,
            StockKeyDescription,
+           SpeciesScientificName,
            YearOfLastAssessment,
            DataCategory,
            ActiveYear,
            AdviceCategory,
-           advice_url,
-           EcoRegion)
+           EcoRegion,
+           StockKeyLabel)
   
-  year_range <- min(stock_list$YearOfLastAssessment):max(stock_list$YearOfLastAssessment)
+  if(output_type == "html"){
+    
+    # Format so the species names will be italicized
+    stock_list_frmt <- bind_rows(
+      # Normal binomial names
+      stock_list %>%
+        filter(grepl("[[:space:]]", SpeciesScientificName)) %>%
+        mutate(StockKeyDescription = stringr::str_replace_all(string = StockKeyDescription,
+                                                              pattern = SpeciesScientificName,
+                                                              replacement = paste0("<em>", SpeciesScientificName, "</em>"))),
+      # Groups of species (.spp)
+      stock_list %>%
+        filter(grepl(" spp.*$", StockKeyDescription)) %>%
+        mutate(StockKeyDescription = stringr::str_replace_all(string = StockKeyDescription,
+                                                              pattern = SpeciesScientificName,
+                                                              replacement = paste0("<em>", SpeciesScientificName, "</em>"))),
+      # A bit different notation (embedded in 2 sets of parentheses)
+      stock_list %>%
+        filter(stock_code %in% c("raj-mar", "raj.27.1012")) %>%
+        mutate(StockKeyDescription = stringr::str_replace_all(string = StockKeyDescription,
+                                                              pattern = "Raja clavata",
+                                                              replacement = "<em>Raja clavata</em>")),
+      
+      # The "others" with no species name
+      stock_list %>%
+        filter(!grepl(" spp.*$", StockKeyDescription)) %>%
+        filter(!stock_code %in% c("raj-mar", "raj.27.1012")) %>%
+        filter(!grepl("[[:space:]]", SpeciesScientificName))
+    ) 
+  }
+  if(output_type == "docx"){
+    stock_list_frmt <- stock_list
+  }
+  stock_list_frmt <- stock_list_frmt %>% 
+    mutate(docx_url = glue::glue("http://www.ices.dk/sites/pub/Publication%20Reports/Advice/{YearOfLastAssessment}/{YearOfLastAssessment}/{stock_code}.pdf"),
+           html_url = glue::glue('<a href={docx_url} target="_blank" title="Click here for the most recent advice">{StockKeyLabel}</a>')) %>% 
+    select(-StockKeyLabel)
+  
+  year_range <- min(stock_list_frmt$YearOfLastAssessment):max(stock_list_frmt$YearOfLastAssessment)
   sag_keys_raw <- do.call("rbind", lapply(year_range,
                                           function(x) icesSAG::findAssessmentKey(stock = NULL,
                                                                                  year = x,
@@ -117,7 +157,7 @@ get_stock_summary <- function(active_year, output_type) {
              status = status_url) %>% 
       tidyr::spread(name, status)
   }
-  if(output_type == "csv"){
+  if(output_type == "docx"){
     sag_stock_status <- sag_stock_status  %>%
       select(AssessmentYear,
              StockKeyLabel,
@@ -127,7 +167,7 @@ get_stock_summary <- function(active_year, output_type) {
   }
 
   # ID the list of stocks
-  stock_summary_table <- stock_list %>%
+  stock_summary_table <- stock_list_frmt %>%
     select(-EcoRegion) %>%
     distinct(.keep_all = TRUE) %>%
     left_join(sag_stock_status, by = c("stock_code" = "StockKeyLabel",
@@ -137,12 +177,18 @@ get_stock_summary <- function(active_year, output_type) {
   if(output_type == "html"){
     stock_summary_table <- stock_summary_table %>% 
       mutate_all(funs(replace(., is.na(.), '<img src= "http://sg.ices.dk/download/icons/6.png" title = "GREY" height ="35%" width="35%"></img>'))) %>% 
-    mutate_all(funs(factor(.)))
+    mutate_all(funs(factor(.))) %>% 
+      mutate(advice_url = html_url) %>% 
+      select(-docx_url,
+             -html_url)
   }
-  if(output_type == "csv"){
+  if(output_type == "docx"){
     stock_summary_table <- stock_summary_table %>% 
       mutate_all(funs(replace(., is.na(.), "GREY"))) %>% 
-      mutate_all(funs(factor(.)))
+      mutate_all(funs(factor(.))) %>% 
+      mutate(advice_url = docx_url) %>% 
+      select(-docx_url,
+             -html_url)
   }
   
   return(stock_summary_table)
